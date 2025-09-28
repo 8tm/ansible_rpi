@@ -62,17 +62,19 @@
          + (found_dtbo.files | default([]) | map(attribute='path') | map('basename') | list) )
          | unique }}
 
-# 5) Zminimalizuj wymagania dla Bookworm/KMS MUSI istnieć vc4-kms-dpi-2inch8.dtbo
-- name: Ensure minimal required DTBO exists (vc4-kms-dpi-2inch8.dtbo)
-  assert:
-    that:
-      - "'vc4-kms-dpi-2inch8.dtbo' in available_dtbo_basenames"
-    fail_msg: >-
-      Brak 'vc4-kms-dpi-2inch8.dtbo' w {{ overlays_dir }} i nie udało się pobrać z Waveshare.
-      Zaktualizuj firmware/bootloader (sudo apt update && sudo apt full-upgrade; ewentualnie raspberrypi-bootloader),
-      lub podaj alternatywny URL w 'install_28_dpi_lcd_touch_screen_dtbo_zip_url'.
+# 5) Decyzja: KMS czy fallback legacy?
+- name: Decide path (KMS vs legacy)
+  set_fact:
+    use_legacy_dpi: "{{ 'vc4-kms-dpi-2inch8.dtbo' not in available_dtbo_basenames }}"
 
-# 6) Zbuduj listę overlayów do użycia (tylko te, które istnieją)
+- name: Warn about legacy fallback
+  debug:
+    msg: >-
+      Nie znaleziono 'vc4-kms-dpi-2inch8.dtbo' – przełączam na tryb legacy DPI (fallback).
+      Dostępne DTBO: {{ available_dtbo_basenames | default([]) }}.
+  when: use_legacy_dpi | default(false)
+
+# 6) Zbuduj listę overlayów do użycia (tylko te, które istnieją) – używane przez configure_bookworm.yml
 - name: Build overlays_to_enable list (present ones only)
   set_fact:
     overlays_to_enable: >-
@@ -88,7 +90,9 @@
         | map('regex_replace', '\\.dtbo$', '')
         | list
       }}
+  when: not (use_legacy_dpi | default(false))
 
-- name: Debug overlays to enable (for visibility)
+- name: Debug overlays to enable (KMS)
   debug:
     var: overlays_to_enable
+  when: not (use_legacy_dpi | default(false))

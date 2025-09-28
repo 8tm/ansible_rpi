@@ -1,6 +1,4 @@
 ---
-# KMS dla Bookworm: vc4-kms-v3d + tylko te overlaye, które realnie istnieją.
-
 - name: Build KMS block for config.txt from overlays_to_enable
   set_fact:
     kms_block: |-
