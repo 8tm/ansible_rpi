@@ -1,0 +1,21 @@
+---
+# Czy wykonać reboot po konfiguracji
+install_28_dpi_lcd_touch_screen_do_reboot: false
+
+# Rotacja (0, 90, 180, 270) – Bookworm Lite przez cmdline (KMS)
+install_28_dpi_lcd_touch_screen_rotation: null
+
+# URL do paczki DTBO od Waveshare (2.8" DPI)
+install_28_dpi_lcd_touch_screen_dtbo_zip_url: "https://files.waveshare.com/wiki/2.8inc-DPI-LCD/28DPI-DTBO.zip"
+install_28_dpi_lcd_touch_screen_dtbo_zip_name: "28DPI-DTBO.zip"
+
+# Oczekiwane pliki .dtbo, które instalujemy do /boot*/overlays
+install_28_dpi_lcd_touch_screen_dtbo_expected:
+  - waveshare-28dpi-3b-4b.dtbo
+  - waveshare-28dpi-3b.dtbo
+  - waveshare-28dpi-4b.dtbo
+  - waveshare-touch-28dpi.dtbo
+  - vc4-kms-dpi-2inch8.dtbo
+
+# Timeout na reboot
+install_28_dpi_lcd_touch_screen_reboot_timeout: 600

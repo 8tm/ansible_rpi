@@ -1,0 +1,16 @@
+---
+- name: Set boot_dir to /boot/firmware on Bookworm (else /boot)
+  set_fact:
+    boot_dir: "{{ '/boot/firmware' if (ansible_facts['distribution_release'] == 'bookworm') else '/boot' }}"
+
+- name: Define key paths
+  set_fact:
+    overlays_dir: "{{ boot_dir }}/overlays"
+    config_txt: "{{ boot_dir }}/config.txt"
+    cmdline_txt: "{{ boot_dir }}/cmdline.txt"
+
+- name: Ensure overlays directory exists
+  file:
+    path: "{{ overlays_dir }}"
+    state: directory
+    mode: "0755"

@@ -1,0 +1,9 @@
+---
+- name: Install & configure Waveshare 2.8" DPI LCD with touch (Bookworm)
+  hosts: local
+  gather_facts: true
+  become: true
+
+  roles:
+    - role: apt
+    - role: install_28_dpi_lcd_touch_screen

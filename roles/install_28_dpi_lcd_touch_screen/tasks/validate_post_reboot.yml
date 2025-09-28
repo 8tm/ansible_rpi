@@ -1,0 +1,44 @@
+---
+- name: Check DRM connector for DPI-1
+  shell: |
+    set -euo pipefail
+    if ls /sys/class/drm/*-DPI-1 >/dev/null 2>&1; then
+      echo "DPI-1 connector present"
+    else
+      echo "DPI-1 connector NOT present" && exit 1
+    fi
+  register: drm_check
+  changed_when: false
+
+- debug:
+    var: drm_check.stdout
+
+- name: Check I2C bus for Goodix touch (0x14 or 0x5d)
+  shell: |
+    set -euo pipefail
+    if command -v i2cdetect >/dev/null; then
+      mapfile -t busses < <(i2cdetect -l | awk '{print $1}' | sed 's/i2c-//g')
+      found=0
+      for b in "${busses[@]}"; do
+        if i2cdetect -y "$b" | grep -qE '\b14\b|\b5d\b'; then
+          echo "Goodix likely present on bus $b"
+          found=1
+        fi
+      done
+      [[ $found -eq 1 ]]
+    else
+      echo "i2cdetect not available" && exit 1
+    fi
+  register: i2c_check
+  changed_when: false
+
+- debug:
+    var: i2c_check.stdout
+
+- name: Grep dmesg for Goodix driver bind
+  shell: dmesg | grep -i goodix | tail -n 20 || true
+  register: dmesg_goodix
+  changed_when: false
+
+- debug:
+    var: dmesg_goodix.stdout_lines

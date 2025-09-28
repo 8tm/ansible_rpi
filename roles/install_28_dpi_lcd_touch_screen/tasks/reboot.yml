@@ -1,0 +1,5 @@
+---
+- name: Reboot host
+  reboot:
+    msg: "Reboot przez Ansible po instalacji 2.8\" DPI LCD"
+    reboot_timeout: "{{ install_28_dpi_lcd_touch_screen_reboot_timeout }}"

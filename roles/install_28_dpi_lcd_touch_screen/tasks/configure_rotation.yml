@@ -1,0 +1,9 @@
+---
+# Obrót dla Bookworm Lite (bez GUI) – przez cmdline.txt (KMS)
+- name: Set rotation via cmdline.txt
+  lineinfile:
+    path: "{{ cmdline_txt }}"
+    regexp: '(^|\\s)video=DPI-1:[^ ]*'
+    line: "video=DPI-1:480x640M@60,rotate={{ install_28_dpi_lcd_touch_screen_rotation }}"
+    state: present
+    backrefs: yes

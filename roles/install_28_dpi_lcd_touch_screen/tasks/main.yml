@@ -1,0 +1,34 @@
+---
+- name: Fail early if not Bookworm
+  assert:
+    that:
+      - ansible_distribution == "Debian"
+      - ansible_distribution_release == "bookworm"
+    fail_msg: "Ta rola jest przygotowana dla Raspberry Pi OS (Debian Bookworm)."
+
+- name: Detect boot paths (/boot/firmware vs /boot)
+  include_tasks: detect_paths.yml
+
+- name: Install required packages
+  include_tasks: install_packages.yml
+
+- name: Download and install DTBO overlays
+  include_tasks: download_dtbo.yml
+
+- name: Configure Bookworm KMS overlays and options
+  include_tasks: configure_bookworm.yml
+
+- name: Configure rotation (optional)
+  include_tasks: configure_rotation.yml
+  when: install_28_dpi_lcd_touch_screen_rotation is not none
+
+- name: Validate pre-reboot (files & config)
+  include_tasks: validate_pre_reboot.yml
+
+- name: Reboot (optional)
+  include_tasks: reboot.yml
+  when: install_28_dpi_lcd_touch_screen_do_reboot
+
+- name: Validate post-reboot (DRM/I2C)
+  include_tasks: validate_post_reboot.yml
+  when: install_28_dpi_lcd_touch_screen_do_reboot

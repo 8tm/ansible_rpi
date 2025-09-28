@@ -1,0 +1,45 @@
+---
+- name: Create temp dir for dtbo zip
+  tempfile:
+    state: directory
+    suffix: dtbo
+  register: tmp_dtbo
+
+- name: Download DTBO zip from Waveshare (or mirror)
+  get_url:
+    url: "{{ install_28_dpi_lcd_touch_screen_dtbo_zip_url }}"
+    dest: "{{ tmp_dtbo.path }}/{{ install_28_dpi_lcd_touch_screen_dtbo_zip_name }}"
+    mode: "0644"
+  register: dtbo_download
+  retries: 3
+  delay: 3
+  until: dtbo_download is succeeded
+
+- name: Unarchive DTBO zip
+  unarchive:
+    src: "{{ tmp_dtbo.path }}/{{ install_28_dpi_lcd_touch_screen_dtbo_zip_name }}"
+    dest: "{{ tmp_dtbo.path }}"
+    remote_src: true
+
+- name: Find extracted dtbo files
+  find:
+    paths: "{{ tmp_dtbo.path }}"
+    patterns: "*.dtbo"
+  register: found_dtbo
+
+- name: Assert required dtbo files present
+  assert:
+    that:
+      - item in (found_dtbo.files | map(attribute='path') | map('basename') | list)
+    success_msg: "Znaleziono wymagany plik DTBO: {{ item }}"
+    fail_msg: "Brak wymaganego pliku DTBO: {{ item }}"
+  loop: "{{ install_28_dpi_lcd_touch_screen_dtbo_expected }}"
+
+- name: Copy dtbo files into overlays dir
+  copy:
+    src: "{{ item.path }}"
+    dest: "{{ overlays_dir }}/{{ item.path | basename }}"
+    mode: "0644"
+  loop: "{{ found_dtbo.files }}"
+  loop_control:
+    label: "{{ item.path | basename }}"

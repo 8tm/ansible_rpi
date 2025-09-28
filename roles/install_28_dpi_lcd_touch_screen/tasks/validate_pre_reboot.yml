@@ -1,0 +1,30 @@
+---
+- name: Check config.txt exists
+  stat:
+    path: "{{ config_txt }}"
+  register: st_config
+
+- name: Fail if config.txt missing
+  assert:
+    that: st_config.stat.exists
+    fail_msg: "Brak pliku {{ config_txt }} – błąd wykrycia partycji /boot."
+
+- name: Confirm expected DTBO files are in overlays dir
+  stat:
+    path: "{{ overlays_dir }}/{{ item }}"
+  register: st_dtbo
+  loop: "{{ install_28_dpi_lcd_touch_screen_dtbo_expected }}"
+  failed_when: false
+
+- name: Assert all expected DTBO files present
+  assert:
+    that: "{{ st_dtbo | json_query('results[*].stat.exists') | min }}"
+    fail_msg: "Nie wszystkie pliki DTBO są obecne w {{ overlays_dir }}."
+
+- name: Show effective config snippet (debug)
+  command: grep -E '^(dtoverlay|gpio=|dpi_|enable_dpi_lcd|hdmi_timings|dtparam=i2c_arm)' "{{ config_txt }}"
+  register: cfg_lines
+  changed_when: false
+
+- debug:
+    var: cfg_lines.stdout_lines

@@ -1,0 +1,20 @@
+---
+# Konfiguracja KMS dla Bookworm. Wyłączenie FKMS jeśli występuje.
+
+- name: Ensure KMS overlays for 2.8" DPI are present (Bookworm)
+  blockinfile:
+    path: "{{ config_txt }}"
+    marker: "# {mark} ANSIBLE Waveshare 2.8 DPI (Bookworm/KMS)"
+    block: |
+      dtoverlay=vc4-kms-v3d
+      dtoverlay=waveshare-28dpi-3b-4b
+      dtoverlay=waveshare-28dpi-3b
+      dtoverlay=waveshare-28dpi-4b
+      dtoverlay=waveshare-touch-28dpi
+      dtoverlay=vc4-kms-dpi-2inch8
+
+- name: Comment out legacy FKMS line if present (safety)
+  replace:
+    path: "{{ config_txt }}"
+    regexp: '^dtoverlay=vc4-fkms-v3d'
+    replace: '# dtoverlay=vc4-fkms-v3d (disabled by Ansible)'
