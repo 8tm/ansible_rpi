@@ -1,5 +1,5 @@
 ---
-# Minimalny zestaw — brak konfliktów w Bookworm
+# Minimalny zestaw - brak konfliktów w Bookworm
 - name: Ensure base packages are installed (Bookworm, minimal)
   apt:
     name:
@@ -9,7 +9,7 @@
     update_cache: no  # cache odświeża rola "apt"
 
 # Opcjonalne narzędzia (nie krytyczne). Nie przerywaj playbooka, gdy są konflikty.
-- name: Try to install optional tools (non-fatal): libdrm-tests, libraspberrypi-bin
+- name: Try to install optional tools (non-fatal) libdrm-tests, libraspberrypi-bin
   apt:
     name:
       - libdrm-tests
