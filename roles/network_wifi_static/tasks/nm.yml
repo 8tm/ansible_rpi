@@ -36,14 +36,19 @@
       ipv4.dns "{{ wifi_ipv4_dns | join(',') }}" \
       ipv4.method manual \
       ipv6.method ignore
+  args:
+    executable: /bin/bash
   register: nm_modify
+  # nmcli 'modify' zwykle nie wypisuje nic na stdout; traktujemy RC==0 jako sukces
   changed_when: nm_modify.rc == 0
 
 - name: Bring connection down/up to apply
   shell: |
     set -euo pipefail
     nmcli connection down "{{ _nm_conn_name }}" || true
-    nmcli connection up "{{ _nm_conn_name }}"
+    nmcli connection up   "{{ _nm_conn_name }}"
+  args:
+    executable: /bin/bash
   register: nm_bounce
   changed_when: true
 
