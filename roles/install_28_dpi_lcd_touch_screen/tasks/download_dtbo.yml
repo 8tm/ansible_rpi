@@ -62,7 +62,7 @@
          + (found_dtbo.files | default([]) | map(attribute='path') | map('basename') | list) )
          | unique }}
 
-# 5) Zminimalizuj wymagania: dla Bookworm/KMS MUSI istnieć vc4-kms-dpi-2inch8.dtbo
+# 5) Zminimalizuj wymagania dla Bookworm/KMS MUSI istnieć vc4-kms-dpi-2inch8.dtbo
 - name: Ensure minimal required DTBO exists (vc4-kms-dpi-2inch8.dtbo)
   assert:
     that:
