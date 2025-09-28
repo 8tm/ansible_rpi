@@ -1,0 +1,3 @@
+#!/bin/bash
+
+ansible-playbook -i inventory.ini playbook.yml -e install_28_dpi_lcd_touch_screen_do_reboot=true -e install_28_dpi_lcd_touch_screen_rotation=270

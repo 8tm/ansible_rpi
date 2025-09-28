@@ -42,18 +42,18 @@
 - name: Validate pre-reboot (files & config)
   include_tasks: validate_pre_reboot.yml
 
-- name: Reboot (optional)
-  include_tasks: reboot.yml
-  when: (install_28_dpi_lcd_touch_screen_do_reboot | default(false) | bool)
+#- name: Reboot (optional)
+#  include_tasks: reboot.yml
+#  when: (install_28_dpi_lcd_touch_screen_do_reboot | default(false) | bool)
 
-- name: Validate post-reboot (DRM/I2C) — KMS
-  include_tasks: validate_post_reboot.yml
-  when:
-    - (install_28_dpi_lcd_touch_screen_do_reboot | default(false) | bool)
-    - not (use_legacy_dpi | default(false) | bool)
+#- name: Validate post-reboot (DRM/I2C) — KMS
+#  include_tasks: validate_post_reboot.yml
+#  when:
+#    - (install_28_dpi_lcd_touch_screen_do_reboot | default(false) | bool)
+#    - not (use_legacy_dpi | default(false) | bool)
 
-- name: Validate post-reboot (legacy) — fb0 and I2C
-  include_tasks: validate_post_reboot_legacy.yml
-  when:
-    - (install_28_dpi_lcd_touch_screen_do_reboot | default(false) | bool)
-    - (use_legacy_dpi | default(false) | bool)
+#- name: Validate post-reboot (legacy) — fb0 and I2C
+#  include_tasks: validate_post_reboot_legacy.yml
+#  when:
+#    - (install_28_dpi_lcd_touch_screen_do_reboot | default(false) | bool)
+#    - (use_legacy_dpi | default(false) | bool)
