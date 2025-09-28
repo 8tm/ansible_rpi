@@ -1,4 +1,9 @@
 ---
+# 0) Ścieżka do lokalnych plików roli
+- name: Define local role DTBO dir
+  set_fact:
+    role_dtbo_dir: "{{ role_path }}/files/28DPI-DTBO"
+
 # 1) Zbierz overlaye już dostępne w systemie
 - name: List existing system DTBOs in overlays dir
   find:
@@ -7,12 +12,36 @@
     file_type: file
   register: sys_dtbo
 
-# 2) Pobierz paczkę (best-effort)
+# 2) Jeśli w roli są lokalne DTBO – skopiuj je (priorytetowo)
+- name: Find role-local dtbo files (if any)
+  find:
+    paths: "{{ role_dtbo_dir }}"
+    patterns: "*.dtbo"
+    file_type: file
+  register: role_dtbo
+  failed_when: false
+
+- name: Copy role-local dtbo files into overlays dir (skip if exists)
+  copy:
+    src: "{{ item.path }}"
+    dest: "{{ overlays_dir }}/{{ item.path | basename }}"
+    mode: "0644"
+    force: no
+  loop: "{{ (role_dtbo.files | default([])) }}"
+  loop_control:
+    label: "{{ item.path | basename }}"
+
+# 3) Jeżeli nie było lokalnych DTBO – spróbuj pobrać paczkę z internetu (best-effort)
+- name: Decide whether to try remote download
+  set_fact:
+    need_remote_dtbo: "{{ (role_dtbo.files | default([]) | length) == 0 }}"
+
 - name: Create temp dir for dtbo zip
   tempfile:
     state: directory
     suffix: dtbo
   register: tmp_dtbo
+  when: need_remote_dtbo | bool
 
 - name: Download DTBO zip from Waveshare (best-effort)
   get_url:
@@ -24,13 +53,16 @@
   retries: 2
   delay: 3
   until: dtbo_download is succeeded or dtbo_download is failed
+  when: need_remote_dtbo | bool
 
 - name: Unarchive DTBO zip (if downloaded)
   unarchive:
     src: "{{ tmp_dtbo.path }}/{{ install_28_dpi_lcd_touch_screen_dtbo_zip_name }}"
     dest: "{{ tmp_dtbo.path }}"
     remote_src: true
-  when: dtbo_download is succeeded
+  when:
+    - need_remote_dtbo | bool
+    - dtbo_download is succeeded
   register: unz
   failed_when: false
 
@@ -40,10 +72,11 @@
     patterns: "*.dtbo"
     file_type: file
   register: found_dtbo
-  when: dtbo_download is succeeded
+  when:
+    - need_remote_dtbo | bool
+    - dtbo_download is succeeded
   failed_when: false
 
-# 3) Skopiuj tylko te dtbo, które mamy w paczce (nie nadpisuj istniejących)
 - name: Copy extracted dtbo files into overlays dir (skip if exists)
   copy:
     src: "{{ item.path }}"
@@ -53,28 +86,35 @@
   loop: "{{ (found_dtbo.files | default([])) }}"
   loop_control:
     label: "{{ item.path | basename }}"
+  when:
+    - need_remote_dtbo | bool
+    - dtbo_download is succeeded
 
-# 4) Ustal listę overlayów, które realnie są dostępne
-- name: Compute available dtbo basenames (system + extracted)
+# 4) Ustal listę overlayów, które realnie są dostępne (system + skopiowane z roli + ew. pobrane)
+- name: Re-list system DTBOs after copies
+  find:
+    paths: "{{ overlays_dir }}"
+    patterns: "*.dtbo"
+    file_type: file
+  register: sys_dtbo_after
+
+- name: Compute available dtbo basenames (system + role + extracted)
   set_fact:
-    available_dtbo_basenames: >-
-      {{ ( (sys_dtbo.files | map(attribute='path') | map('basename') | list)
-         + (found_dtbo.files | default([]) | map(attribute='path') | map('basename') | list) )
-         | unique }}
+    available_dtbo_basenames: "{{ (sys_dtbo_after.files | map(attribute='path') | map('basename') | list) | unique }}"
 
-# 5) Decyzja: KMS czy fallback legacy?
+# 5) Decyzja: KMS czy legacy?
 - name: Decide path (KMS vs legacy)
   set_fact:
     use_legacy_dpi: "{{ 'vc4-kms-dpi-2inch8.dtbo' not in available_dtbo_basenames }}"
 
-- name: Warn about legacy fallback
+- name: Warn about legacy fallback (if no KMS overlay)
   debug:
     msg: >-
       Nie znaleziono 'vc4-kms-dpi-2inch8.dtbo' – przełączam na tryb legacy DPI (fallback).
       Dostępne DTBO: {{ available_dtbo_basenames | default([]) }}.
-  when: use_legacy_dpi | default(false)
+  when: use_legacy_dpi | bool
 
-# 6) Zbuduj listę overlayów do użycia (tylko te, które istnieją) – używane przez configure_bookworm.yml
+# 6) Zbuduj listę overlayów KMS do użycia (tylko te, które istnieją)
 - name: Build overlays_to_enable list (present ones only)
   set_fact:
     overlays_to_enable: >-
@@ -90,9 +130,9 @@
         | map('regex_replace', '\\.dtbo$', '')
         | list
       }}
-  when: not (use_legacy_dpi | default(false))
+  when: not (use_legacy_dpi | bool)
 
 - name: Debug overlays to enable (KMS)
   debug:
     var: overlays_to_enable
-  when: not (use_legacy_dpi | default(false))
+  when: not (use_legacy_dpi | bool)

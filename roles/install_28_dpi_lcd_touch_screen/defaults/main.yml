@@ -1,15 +1,17 @@
 ---
-# Czy wykonać reboot po konfiguracji
+# Domyślne parametry roli (Bookworm)
+
+# Reboot po konfiguracji
 install_28_dpi_lcd_touch_screen_do_reboot: false
 
-# Rotacja (0, 90, 180, 270) – Bookworm Lite przez cmdline (KMS)
+# Rotacja (0, 90, 180, 270) — tylko KMS (cmdline). Dla legacy ignorowana.
 install_28_dpi_lcd_touch_screen_rotation: null
 
-# URL do paczki DTBO od Waveshare (2.8" DPI)
+# URL DTBO (fallback – użyjemy tylko jeśli nie ma plików lokalnych w roli)
 install_28_dpi_lcd_touch_screen_dtbo_zip_url: "https://files.waveshare.com/wiki/2.8inc-DPI-LCD/28DPI-DTBO.zip"
 install_28_dpi_lcd_touch_screen_dtbo_zip_name: "28DPI-DTBO.zip"
 
-# Oczekiwane pliki .dtbo, które instalujemy do /boot*/overlays
+# Oczekiwane pliki .dtbo (używane do debugów/świadomości; nie asertywujemy twardo poza KMS-minimum)
 install_28_dpi_lcd_touch_screen_dtbo_expected:
   - waveshare-28dpi-3b-4b.dtbo
   - waveshare-28dpi-3b.dtbo

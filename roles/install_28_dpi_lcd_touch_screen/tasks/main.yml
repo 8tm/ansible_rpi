@@ -15,45 +15,45 @@
 - name: Download / detect DTBO overlays and decide path
   include_tasks: download_dtbo.yml
 
-# Jeśli mamy KMS overlay (vc4-kms-dpi-2inch8), idziemy ścieżką KMS
+# KMS: mamy vc4-kms-dpi-2inch8.dtbo
 - name: Configure Bookworm KMS overlays and options
   include_tasks: configure_bookworm.yml
-  when: not (use_legacy_dpi | default(false))
+  when: not (use_legacy_dpi | default(false) | bool)
 
-# Jeśli nie mamy KMS overlay – fallback do legacy DPI (działa także na Bookworm)
+# Legacy fallback: brak KMS overlay
 - name: Configure legacy DPI fallback on Bookworm
   include_tasks: configure_legacy_on_bookworm.yml
-  when: use_legacy_dpi | default(false)
+  when: (use_legacy_dpi | default(false) | bool)
 
-# Rotacja tylko dla KMS/cmdline
+# Rotacja tylko dla KMS
 - name: Configure rotation (optional, KMS only)
   include_tasks: configure_rotation.yml
   when:
     - install_28_dpi_lcd_touch_screen_rotation is not none
-    - not (use_legacy_dpi | default(false))
+    - not (use_legacy_dpi | default(false) | bool)
 
 - name: Warn rotation ignored on legacy fallback
   debug:
     msg: "Uwaga: rotacja przez cmdline (KMS) pominięta, bo użyto fallbacku legacy DPI."
   when:
     - install_28_dpi_lcd_touch_screen_rotation is not none
-    - use_legacy_dpi | default(false)
+    - (use_legacy_dpi | default(false) | bool)
 
 - name: Validate pre-reboot (files & config)
   include_tasks: validate_pre_reboot.yml
 
 - name: Reboot (optional)
   include_tasks: reboot.yml
-  when: install_28_dpi_lcd_touch_screen_do_reboot
+  when: (install_28_dpi_lcd_touch_screen_do_reboot | default(false) | bool)
 
-- name: Validate post-reboot (DRM/I2C) - KMS
+- name: Validate post-reboot (DRM/I2C) — KMS
   include_tasks: validate_post_reboot.yml
   when:
-    - install_28_dpi_lcd_touch_screen_do_reboot
-    - not (use_legacy_dpi | default(false))
+    - (install_28_dpi_lcd_touch_screen_do_reboot | default(false) | bool)
+    - not (use_legacy_dpi | default(false) | bool)
 
 - name: Validate post-reboot (legacy) — fb0 and I2C
   include_tasks: validate_post_reboot_legacy.yml
   when:
-    - install_28_dpi_lcd_touch_screen_do_reboot
-    - use_legacy_dpi | default(false)
+    - (install_28_dpi_lcd_touch_screen_do_reboot | default(false) | bool)
+    - (use_legacy_dpi | default(false) | bool)
