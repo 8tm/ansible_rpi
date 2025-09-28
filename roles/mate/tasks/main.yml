@@ -1,0 +1,52 @@
+---
+- name: Ensure base desktop packages are installed (MATE)
+  apt:
+    name: "{{ mate_packages + mate_extra_packages }}"
+    state: present
+    update_cache: no # cache robi rola "apt"
+
+
+- name: Ensure target user exists
+  user:
+    name: "{{ mate_target_user }}"
+    state: present
+
+
+- name: Ensure user is in common desktop groups
+  user:
+    name: "{{ mate_target_user }}"
+    groups: ["audio", "video", "render", "input", "netdev", "plugdev"]
+    append: true
+
+
+# Ustaw LightDM jako display manager (jeśli coś innego było domyślne)
+- name: Configure LightDM as default display manager (debconf)
+  debconf:
+    name: lightdm
+    question: shared/default-x-display-manager
+    value: lightdm
+    vtype: select
+
+
+# Czasami trzeba jeszcze przestawić alternatywy
+- name: Ensure /etc/X11/default-display-manager points to lightdm
+  copy:
+    dest: /etc/X11/default-display-manager
+    content: "/usr/sbin/lightdm"
+    owner: root
+    group: root
+    mode: "0644"
+
+
+# W Bookworm domyślnie aktywne mogą być inne sesje (wayfire). Wyłączmy autostart wayfire dla systemu.
+- name: Disable wayfire/session autostart if present (best-effort)
+  file:
+    path: "/etc/xdg/autostart/wayfire-session.target"
+    state: absent
+  failed_when: false
+
+
+- name: Info
+  debug:
+    msg: >-
+      MATE zainstalowane. Po restarcie powinien wystartować LightDM.

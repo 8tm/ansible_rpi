@@ -1,0 +1,29 @@
+---
+# Docelowy user (grupy itp.) – można nadpisać z CLI: -e mate_target_user=pi
+mate_target_user: devcat
+
+
+# Pakiety MATE – minimalny core + LightDM jako display manager
+mate_packages:
+- xserver-xorg
+- mate-desktop-environment-core
+- mate-terminal
+- mate-control-center
+- mate-panel
+- mate-menu
+- mate-session-manager
+- marco
+- lightdm
+- lightdm-gtk-greeter
+- policykit-1
+- dbus-x11
+- fonts-dejavu
+
+
+# Dodatkowe przydatne
+mate_extra_packages:
+- network-manager-gnome
+- pulseaudio
+- pavucontrol
+- alsa-utils
+- x11-xserver-utils

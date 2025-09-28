@@ -7,3 +7,5 @@
   roles:
     - role: apt
     - role: install_28_dpi_lcd_touch_screen
+    - role: mate
+    - role: mate_autologin

@@ -1,0 +1,5 @@
+---
+mate_target_user: devcat
+mate_lightdm_conf_dir: "/etc/lightdm/lightdm.conf.d"
+mate_lightdm_autologin_file: "50-autologin.conf"
+mate_lightdm_session: "mate"

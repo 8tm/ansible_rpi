@@ -1,0 +1,52 @@
+---
+- name: Ensure LightDM config dir exists
+  file:
+    path: "{{ mate_lightdm_conf_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Configure LightDM autologin for user
+  copy:
+    dest: "{{ mate_lightdm_conf_dir }}/{{ mate_lightdm_autologin_file }}"
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      [Seat:*]
+      autologin-user={{ mate_target_user }}
+      autologin-user-timeout=0
+      user-session={{ mate_lightdm_session }}
+      greeter-session=lightdm-gtk-greeter
+
+- name: Ensure target user belongs to nopasswdlogin (optional)
+  group:
+    name: nopasswdlogin
+    state: present
+
+- name: Add user to nopasswdlogin group (LightDM can use it)
+  user:
+    name: "{{ mate_target_user }}"
+    groups: ["nopasswdlogin"]
+    append: true
+
+# Dodatkowe zabezpieczenie: polkit – autoryzacje bez pytania o hasło dla lokalnego usera (opcjonalne)
+- name: Configure polkit local no-password (optional generic)
+  copy:
+    dest: /etc/polkit-1/localauthority/50-local.d/46-allow-no-password.pkla
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      [Allow NoPassword for local]
+      Identity=unix-user:{{ mate_target_user }}
+      Action=*
+      ResultActive=yes
+  notify: []
+
+
+- name: Info
+  debug:
+    msg: >-
+      Autologowanie LightDM skonfigurowane dla użytkownika {{ mate_target_user }} do sesji {{ mate_lightdm_session }}.
