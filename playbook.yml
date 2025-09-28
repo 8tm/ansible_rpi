@@ -5,6 +5,7 @@
   become: true
 
   roles:
+    - role: install_rpi_update_client
     - role: apt
     - role: network_wifi_static
     - role: install_28_dpi_lcd_touch_screen

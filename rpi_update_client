@@ -1,5 +1,0 @@
-#!/bin/bash
-
-source /home/${USER}/.venv/bin/activate
-
-ansible-playbook -i inventory.ini playbook.yml

@@ -1,0 +1,9 @@
+---
+# Użytkownik docelowy
+bash_alias_target_user: "{{ lookup('env','USER') }}"
+
+# Ścieżka do repo ansible
+bash_alias_repo_dir: "/home/{{ bash_alias_target_user }}/ansible_rpi"
+
+# Nazwa skryptu
+bash_alias_script: "rpi-update-client"

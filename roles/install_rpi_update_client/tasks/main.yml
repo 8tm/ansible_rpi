@@ -1,0 +1,35 @@
+---
+- name: Ensure target directory exists
+  file:
+    path: "{{ bash_alias_repo_dir }}"
+    state: directory
+    mode: "0755"
+    owner: "{{ bash_alias_target_user }}"
+    group: "{{ bash_alias_target_user }}"
+
+# (opcjonalnie) Wrzucenie gotowego skryptu, jeśli trzymasz go w roli
+# - name: Deploy rpi-update-client script
+#   copy:
+#     src: rpi-update-client
+#     dest: "{{ bash_alias_repo_dir }}/{{ bash_alias_script }}"
+#     mode: "0755"
+#     owner: "{{ bash_alias_target_user }}"
+#     group: "{{ bash_alias_target_user }}"
+
+- name: Ensure script is executable if present
+  file:
+    path: "{{ bash_alias_repo_dir }}/{{ bash_alias_script }}"
+    mode: "0755"
+  when: ansible_facts['user_dir'] is defined and
+        lookup('file', bash_alias_repo_dir ~ '/' ~ bash_alias_script, errors='ignore') != ""
+
+- name: Add alias to .bashrc
+  lineinfile:
+    path: "/home/{{ bash_alias_target_user }}/.bashrc"
+    line: "alias rpi-update-client='{{ bash_alias_repo_dir }}/{{ bash_alias_script }}'"
+    state: present
+    create: yes
+    insertafter: EOF
+    owner: "{{ bash_alias_target_user }}"
+    group: "{{ bash_alias_target_user }}"
+    mode: "0644"
