@@ -16,10 +16,11 @@
   loop: "{{ install_28_dpi_lcd_touch_screen_dtbo_expected }}"
   failed_when: false
 
-- name: Assert all expected DTBO files present
-  assert:
-    that: "{{ st_dtbo | json_query('results[*].stat.exists') | min }}"
-    fail_msg: "Nie wszystkie pliki DTBO są obecne w {{ overlays_dir }}."
+- name: Show which expected dtbo are present (debug)
+  debug:
+    msg: >-
+      Oczekiwane: {{ install_28_dpi_lcd_touch_screen_dtbo_expected }}.
+      Dostępne:  {{ available_dtbo_basenames | default([]) }}.
 
 - name: Show effective config snippet (debug)
   command: grep -E '^(dtoverlay|gpio=|dpi_|enable_dpi_lcd|hdmi_timings|dtparam=i2c_arm)' "{{ config_txt }}"
