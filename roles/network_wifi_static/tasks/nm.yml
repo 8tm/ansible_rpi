@@ -6,19 +6,26 @@
     nmcli -t -f NAME,DEVICE connection show --active | awk -F: -v dev="{{ wifi_iface }}" '$2==dev{print $1; exit}'
   register: nm_active_conn
   changed_when: false
-  when: (wifi_nm_connection_name | length) == 0
+  when: (wifi_nm_connection_name | default('') | length) == 0
 
-- name: Set connection name fact
+- name: Use provided NM connection name
   set_fact:
-    _nm_conn_name: "{{ (wifi_nm_connection_name | length) > 0 | ternary(wifi_nm_connection_name, nm_active_conn.stdout | default('')) }}"
+    _nm_conn_name: "{{ wifi_nm_connection_name }}"
+  when: (wifi_nm_connection_name | default('') | length) > 0
+
+- name: Use detected NM connection name
+  set_fact:
+    _nm_conn_name: "{{ nm_active_conn.stdout | default('') | trim }}"
+  when:
+    - (wifi_nm_connection_name | default('') | length) == 0
 
 - name: Fail if NM connection could not be detected
   assert:
     that:
-      - (_nm_conn_name | default('')) | length > 0
+      - (_nm_conn_name | default('') | length) > 0
     fail_msg: >-
       Nie wykryto aktywnego profilu NM na {{ wifi_iface }} i nie podano wifi_nm_connection_name.
-      Upewnij się, że Wi‑Fi jest połączone albo podaj nazwę profilu nmcli.
+      Upewnij się, że Wi-Fi jest połączone albo podaj nazwę profilu nmcli.
 
 - name: Apply static IPv4 on NM profile
   shell: |
