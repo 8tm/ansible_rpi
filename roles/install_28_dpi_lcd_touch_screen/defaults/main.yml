@@ -5,7 +5,8 @@
 install_28_dpi_lcd_touch_screen_do_reboot: false
 
 # Rotacja (0, 90, 180, 270) — tylko KMS (cmdline). Dla legacy ignorowana.
-install_28_dpi_lcd_touch_screen_rotation: null
+# install_28_dpi_lcd_touch_screen_rotation: null
+install_28_dpi_lcd_touch_screen_rotation: 180
 
 # URL DTBO (fallback – użyjemy tylko jeśli nie ma plików lokalnych w roli)
 install_28_dpi_lcd_touch_screen_dtbo_zip_url: "https://files.waveshare.com/wiki/2.8inc-DPI-LCD/28DPI-DTBO.zip"
