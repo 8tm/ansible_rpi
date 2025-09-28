@@ -1,18 +1,28 @@
 ---
-- name: Ensure base packages are installed (Bookworm)
+# Minimalny zestaw — brak konfliktów w Bookworm
+- name: Ensure base packages are installed (Bookworm, minimal)
   apt:
     name:
       - unzip
       - i2c-tools
-      - libraspberrypi-bin
-      - libdrm-tests
     state: present
-    update_cache: no  # cache aktualizuje rola "apt"
+    update_cache: no  # cache odświeża rola "apt"
 
-- name: Ensure i2c_arm is enabled in config.txt
-  lineinfile:
-    path: "{{ config_txt }}"
-    line: "dtparam=i2c_arm=on"
+# Opcjonalne narzędzia (nie krytyczne). Nie przerywaj playbooka, gdy są konflikty.
+- name: Try to install optional tools (non-fatal): libdrm-tests, libraspberrypi-bin
+  apt:
+    name:
+      - libdrm-tests
+      - libraspberrypi-bin
     state: present
-    create: yes
-    insertafter: EOF
+    install_recommends: no
+    update_cache: no
+  register: optional_pkgs
+  failed_when: false
+
+- name: Warn if optional tools failed to install
+  debug:
+    msg: >
+      Opcjonalne pakiety (libdrm-tests/libraspberrypi-bin) nie zostały zainstalowane – pomijam.
+      To nie blokuje konfiguracji ekranu. Komunikat APT: {{ optional_pkgs.msg | default('brak') }}
+  when: optional_pkgs is failed
