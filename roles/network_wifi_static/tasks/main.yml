@@ -1,0 +1,28 @@
+---
+- name: Decide manager (NetworkManager vs dhcpcd)
+  block:
+    - name: Check if nmcli exists
+      command: which nmcli
+      register: nmcli_bin
+      changed_when: false
+      failed_when: false
+
+    - name: Check if NetworkManager is running
+      command: nmcli -t -f RUNNING general
+      register: nmcli_running
+      changed_when: false
+      failed_when: false
+      when: nmcli_bin.rc == 0
+
+    - name: Set facts about manager
+      set_fact:
+        use_nm: >-
+          {{ (wifi_prefer_networkmanager | bool) and (nmcli_bin.rc == 0) and (nmcli_running.stdout | default('') | trim == 'running') }}
+
+    - name: Configure via NetworkManager
+      include_tasks: nm.yml
+      when: use_nm | bool
+
+    - name: Configure via dhcpcd
+      include_tasks: dhcpcd.yml
+      when: not (use_nm | bool)

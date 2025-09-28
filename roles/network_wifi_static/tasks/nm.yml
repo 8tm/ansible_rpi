@@ -1,0 +1,49 @@
+---
+# Ustawienia przez NetworkManager
+
+- name: Discover active NM connection for {{ wifi_iface }} if not provided
+  shell: |
+    nmcli -t -f NAME,DEVICE connection show --active | awk -F: -v dev="{{ wifi_iface }}" '$2==dev{print $1; exit}'
+  register: nm_active_conn
+  changed_when: false
+  when: (wifi_nm_connection_name | length) == 0
+
+- name: Set connection name fact
+  set_fact:
+    _nm_conn_name: "{{ (wifi_nm_connection_name | length) > 0 | ternary(wifi_nm_connection_name, nm_active_conn.stdout | default('')) }}"
+
+- name: Fail if NM connection could not be detected
+  assert:
+    that:
+      - (_nm_conn_name | default('')) | length > 0
+    fail_msg: >-
+      Nie wykryto aktywnego profilu NM na {{ wifi_iface }} i nie podano wifi_nm_connection_name.
+      Upewnij się, że Wi‑Fi jest połączone albo podaj nazwę profilu nmcli.
+
+- name: Apply static IPv4 on NM profile
+  shell: |
+    set -euo pipefail
+    nmcli connection modify "{{ _nm_conn_name }}" \
+      ipv4.addresses "{{ wifi_ipv4_address }}/{{ wifi_ipv4_prefix }}" \
+      ipv4.gateway "{{ wifi_ipv4_gateway }}" \
+      ipv4.dns "{{ wifi_ipv4_dns | join(',') }}" \
+      ipv4.method manual \
+      ipv6.method ignore
+  register: nm_modify
+  changed_when: nm_modify.rc == 0
+
+- name: Bring connection down/up to apply
+  shell: |
+    set -euo pipefail
+    nmcli connection down "{{ _nm_conn_name }}" || true
+    nmcli connection up "{{ _nm_conn_name }}"
+  register: nm_bounce
+  changed_when: true
+
+- name: Show nmcli device status (debug)
+  command: nmcli -f GENERAL.DEVICE,GENERAL.STATE,IP4.ADDRESS,IP4.GATEWAY device show "{{ wifi_iface }}"
+  register: nm_show
+  changed_when: false
+
+- debug:
+    var: nm_show.stdout

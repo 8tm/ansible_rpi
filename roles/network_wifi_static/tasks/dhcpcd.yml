@@ -1,0 +1,32 @@
+---
+# Konfiguracja przez dhcpcd – klasyczna metoda, jeśli brak NM
+
+- name: Ensure dhcpcd is installed (best-effort)
+  apt:
+    name: dhcpcd5
+    state: present
+    update_cache: no
+  failed_when: false
+
+- name: Write static config for {{ wifi_iface }} in /etc/dhcpcd.conf
+  blockinfile:
+    path: /etc/dhcpcd.conf
+    marker: "# {mark} ANSIBLE wifi static {{ wifi_iface }}"
+    block: |
+      interface {{ wifi_iface }}
+      static ip_address={{ wifi_ipv4_address }}/{{ wifi_ipv4_prefix }}
+      static routers={{ wifi_ipv4_gateway }}
+      static domain_name_servers={{ wifi_ipv4_dns | join(' ') }}
+
+- name: Restart dhcpcd to apply
+  service:
+    name: dhcpcd
+    state: restarted
+
+- name: Show current IP (ip addr)
+  command: ip -4 addr show dev {{ wifi_iface }}
+  register: ip_show
+  changed_when: false
+
+- debug:
+    var: ip_show.stdout

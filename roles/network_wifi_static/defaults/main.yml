@@ -1,0 +1,20 @@
+---
+# Docelowy interfejs Wi‑Fi
+wifi_iface: wlan0
+
+
+# Statyczny adres IPv4
+wifi_ipv4_address: 192.168.1.242
+wifi_ipv4_prefix: 24              # 255.255.255.0
+wifi_ipv4_gateway: 192.168.1.1
+wifi_ipv4_dns:
+- 1.1.1.1
+- 8.8.8.8
+
+
+# Preferuj NetworkManager (Bookworm) – jeśli false, wymuś dhcpcd
+wifi_prefer_networkmanager: true
+
+
+# Nazwa profilu NM – jeśli pusty, wykryj aktywne połączenie na interfejsie
+wifi_nm_connection_name: ""
