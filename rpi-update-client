@@ -1,7 +1,42 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
+REQUIRED_PACKAGES=("python3-venv" "python3-pip" "git")
+
+echo -n "Sprawdzanie wymaganych pakietów"
+install_packages=""
+
+for package_name in "${REQUIRED_PACKAGES[@]}"; do
+    if dpkg -s "${package_name}" &> /dev/null; then
+        echo -n "."
+    else
+        install_packages="${package_name}"
+    fi
+done
+
+if [ ${install_packages} != "" ]; then
+    sudo apt-get update -y
+    sudo apt-get install -y "${install_packages}"
+fi
+
+venv_path="/home/${USER}/.venv"
+
+if [[ ! -d "${venv_path}" ]]; then
+    echo "Tworzenie wirtualnego środowiska w ${venv_path} ..."
+    cd /home/${USER}
+    python3 -m venv .venv
+    source ${venv_path}/bin/activate
+    pip install ansible
+
+    if ! grep -Fxq "alias rpi-update-client='/home/${USER}/ansible_rpi/rpi-update-client'" ~/.bashrc; then
+        echo "alias rpi-update-client='/home/${USER}/ansible_rpi/rpi-update-client'" >> ~/.bashrc
+    fi
+    echo "✔ Wirtualne środowisko zostało utworzone."
+fi
+
+echo "✔ Wczytuję wirtualne środowisko z ${venv_path}"
 source /home/${USER}/.venv/bin/activate
-
 cd /home/${USER}/ansible_rpi || exit 2
+echo "✔ Aktualizuję repozytorium i uruchamiam aktualizację..."
+git pull && ansible-playbook -i inventory.ini playbook.yml && echo "✔ Aktualizacja zakończona."
 
-git pull && ansible-playbook -i inventory.ini playbook.yml
