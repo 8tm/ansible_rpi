@@ -1,0 +1,24 @@
+---
+- name: Ensure KMS overlays block present (Bookworm)
+  blockinfile:
+    path: "{{ config_txt }}"
+    marker: "# {mark} ANSIBLE Waveshare 2.8 DPI (Bookworm/KMS)"
+    block: "{{ kms_block }}"
+
+- name: Find role-local dtbo files (if any)
+  find:
+    paths: "{{ dtbo_dir }}"
+    patterns: "*.dtbo"
+    file_type: file
+  register: dtbo_files
+  failed_when: false
+
+- name: Copy dtbo files into overlays dir (skip if exists)
+  copy:
+    src: "{{ item.path }}"
+    dest: "{{ overlays_dir }}/{{ item.path | basename }}"
+    mode: "0644"
+    force: no
+  loop: "{{ (dtbo_files.files | default([])) }}"
+  loop_control:
+    label: "{{ item.path | basename }}"

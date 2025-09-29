@@ -1,0 +1,10 @@
+---
+# Folders
+boot_dir: '/boot/firmware'
+overlays_dir: "{{ boot_dir }}/overlays"
+
+# Files
+config_txt: "{{ boot_dir }}/config.txt"
+cmdline_txt: "{{ boot_dir }}/cmdline.txt"
+
+user_name: "{{ lookup('env','USER') }}"

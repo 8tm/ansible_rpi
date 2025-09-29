@@ -1,13 +1,22 @@
 ---
-- name: Install & configure Waveshare 2.8" DPI LCD with touch (Bookworm)
-  hosts: local
+- name: Playbook for Raspberry Pi Zero 2 W with WaveShare 2.8" LCD DPI Touch Screen
+  hosts: localhost
   gather_facts: true
   become: true
+  connection: local
+  vars:
+    user_name: 'devcat'
+
+  pre_tasks:
+    - name: Run apt update
+      include_role:
+        name: apt
 
   roles:
-    - role: install_rpi_update_client
-    - role: apt
-    - role: network_wifi_static
-    - role: install_28_dpi_lcd_touch_screen
-    - role: mate
-    - role: mate_autologin
+    - install_waveshare_28_lcd_dpi_touch_screen_drivers
+
+#    - install_rpi_update_client
+#    - network_wifi_static
+#    - install_28_dpi_lcd_touch_screen
+#    - mate
+#    - mate_autologin
