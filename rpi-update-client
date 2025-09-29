@@ -40,8 +40,8 @@ if [[ ! -d "${venv_path}" ]]; then
     source ${venv_path}/bin/activate
     pip install ansible
 
-    if ! grep -Fxq "alias rpi-update-client='sudo /home/${REAL_USER}/ansible_rpi/rpi-update-client'" ~/.bashrc; then
-        echo "alias rpi-update-client='sudo /home/${REAL_USER}/ansible_rpi/rpi-update-client'" >> ~/.bashrc
+    if ! grep -Fxq "alias rpi-update-client='sudo /home/${REAL_USER}/ansible_rpi/rpi-update-client'" /home/${REAL_USER}/.bashrc; then
+        echo "alias rpi-update-client='sudo /home/${REAL_USER}/ansible_rpi/rpi-update-client'" >> /home/${REAL_USER}/.bashrc
     fi
     echo -e "\e[32m✔\e[0m Wirtualne środowisko zostało utworzone."
 fi
