@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# sprawdzenie czy skrypt działa jako root
+if [[ "${EUID}" -ne 0 ]]; then
+    echo "❌ Ten skrypt musi być uruchomiony jako root (np. przez: sudo $0)" >&2
+    exit 1
+fi
+
+echo "✔ Skrypt uruchomiony z uprawnieniami root."
+
 REQUIRED_PACKAGES=("python3-venv" "python3-pip" "git")
 
 echo -n "Sprawdzanie wymaganych pakietów"
@@ -29,8 +37,8 @@ if [[ ! -d "${venv_path}" ]]; then
     source ${venv_path}/bin/activate
     pip install ansible
 
-    if ! grep -Fxq "alias rpi-update-client='/home/${USER}/ansible_rpi/rpi-update-client'" ~/.bashrc; then
-        echo "alias rpi-update-client='/home/${USER}/ansible_rpi/rpi-update-client'" >> ~/.bashrc
+    if ! grep -Fxq "alias rpi-update-client='sudo /home/${USER}/ansible_rpi/rpi-update-client'" ~/.bashrc; then
+        echo "alias rpi-update-client='sudo /home/${USER}/ansible_rpi/rpi-update-client'" >> ~/.bashrc
     fi
     echo "✔ Wirtualne środowisko zostało utworzone."
 fi
