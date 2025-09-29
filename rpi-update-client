@@ -7,6 +7,8 @@ if [[ "${EUID}" -ne 0 ]]; then
     exit 1
 fi
 
+REAL_USER="${SUDO_USER:-$USER}"
+
 echo "✔ Skrypt uruchomiony z uprawnieniami root."
 
 REQUIRED_PACKAGES=("python3-venv" "python3-pip" "git")
@@ -28,7 +30,7 @@ if [ -n "${install_packages}" ]; then
     sudo apt-get install -y ${install_packages}
 fi
 
-venv_path="/home/${USER}/.venv"
+venv_path="/home/${REAL_USER}/.venv"
 
 if [[ ! -d "${venv_path}" ]]; then
     echo "Tworzenie wirtualnego środowiska w ${venv_path} ..."
