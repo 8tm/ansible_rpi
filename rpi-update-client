@@ -13,6 +13,7 @@ for package_name in "${REQUIRED_PACKAGES[@]}"; do
         install_packages="${package_name}"
     fi
 done
+echo
 
 if [ -n "${install_packages}" ]; then
     sudo apt-get update -y
