@@ -9,7 +9,7 @@ fi
 
 REAL_USER="${SUDO_USER:-$USER}"
 
-echo "✔ Skrypt uruchomiony z uprawnieniami root."
+echo -e "\e[32m✔\e[0m Skrypt uruchomiony z uprawnieniami root."
 
 REQUIRED_PACKAGES=("python3-venv" "python3-pip" "git")
 
@@ -23,7 +23,7 @@ for package_name in "${REQUIRED_PACKAGES[@]}"; do
         install_packages="${package_name}"
     fi
 done
-echo
+echo "\e[32m✔\e[0m Wszystkie wymagane pakiety są już zainstalowane."
 
 if [ -n "${install_packages}" ]; then
     sudo apt-get update -y
@@ -42,12 +42,11 @@ if [[ ! -d "${venv_path}" ]]; then
     if ! grep -Fxq "alias rpi-update-client='sudo /home/${REAL_USER}/ansible_rpi/rpi-update-client'" ~/.bashrc; then
         echo "alias rpi-update-client='sudo /home/${REAL_USER}/ansible_rpi/rpi-update-client'" >> ~/.bashrc
     fi
-    echo "✔ Wirtualne środowisko zostało utworzone."
+    echo "\e[32m✔\e[0m Wirtualne środowisko zostało utworzone."
 fi
 
-echo "✔ Wczytuję wirtualne środowisko z ${venv_path}"
 source /home/${REAL_USER}/.venv/bin/activate
+echo "\e[32m✔\e[0m Wczytano wirtualne środowisko z ${venv_path}"
 cd /home/${REAL_USER}/ansible_rpi || exit 2
-echo "✔ Aktualizuję repozytorium i uruchamiam aktualizację..."
-git pull && ansible-playbook -i inventory.ini playbook.yml && echo "✔ Aktualizacja zakończona."
-
+echo "- Aktualizuję repozytorium i uruchamiam aktualizację..."
+git pull && ansible-playbook -i inventory.ini playbook.yml && echo "\e[32m✔\e[0m  Aktualizacja zakończona."
