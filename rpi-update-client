@@ -34,20 +34,20 @@ venv_path="/home/${REAL_USER}/.venv"
 
 if [[ ! -d "${venv_path}" ]]; then
     echo "Tworzenie wirtualnego środowiska w ${venv_path} ..."
-    cd /home/${USER}
+    cd /home/${REAL_USER}
     python3 -m venv .venv
     source ${venv_path}/bin/activate
     pip install ansible
 
-    if ! grep -Fxq "alias rpi-update-client='sudo /home/${USER}/ansible_rpi/rpi-update-client'" ~/.bashrc; then
-        echo "alias rpi-update-client='sudo /home/${USER}/ansible_rpi/rpi-update-client'" >> ~/.bashrc
+    if ! grep -Fxq "alias rpi-update-client='sudo /home/${REAL_USER}/ansible_rpi/rpi-update-client'" ~/.bashrc; then
+        echo "alias rpi-update-client='sudo /home/${REAL_USER}/ansible_rpi/rpi-update-client'" >> ~/.bashrc
     fi
     echo "✔ Wirtualne środowisko zostało utworzone."
 fi
 
 echo "✔ Wczytuję wirtualne środowisko z ${venv_path}"
-source /home/${USER}/.venv/bin/activate
-cd /home/${USER}/ansible_rpi || exit 2
+source /home/${REAL_USER}/.venv/bin/activate
+cd /home/${REAL_USER}/ansible_rpi || exit 2
 echo "✔ Aktualizuję repozytorium i uruchamiam aktualizację..."
 git pull && ansible-playbook -i inventory.ini playbook.yml && echo "✔ Aktualizacja zakończona."
 
