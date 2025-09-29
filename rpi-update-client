@@ -14,9 +14,9 @@ for package_name in "${REQUIRED_PACKAGES[@]}"; do
     fi
 done
 
-if [ ${install_packages} != "" ]; then
+if [ -n "${install_packages}" ]; then
     sudo apt-get update -y
-    sudo apt-get install -y "${install_packages}"
+    sudo apt-get install -y ${install_packages}
 fi
 
 venv_path="/home/${USER}/.venv"
