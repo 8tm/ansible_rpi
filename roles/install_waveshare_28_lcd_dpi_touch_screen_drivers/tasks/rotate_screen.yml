@@ -72,3 +72,13 @@
 #   ansible.builtin.command: "loginctl enable-linger {{ real_user }} && sudo -u {{ real_user }} systemctl --user restart kanshi.service"
 #   changed_when: true
 #   when: false
+
+- name: Change mouse mode to multitouch
+  ansible.builtin.replace:
+    path: "{{ real_home }}/.config/labwc/rc.xml"
+    regexp: '(\bmouseEmulation=")(?:yes|no)"'
+    replace: '\1no"'
+    backup: true
+    owner: "{{ real_user }}"
+    group: "{{ real_user }}"
+    mode: "0644"
