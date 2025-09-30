@@ -42,13 +42,18 @@
     group: "{{ real_user }}"
     mode: "0755"
 
-- name: Upewnij się, że plik config istnieje
-  ansible.builtin.file:
-    path: "{{ real_home }}/.config/kanshi/config"
-    state: touch
+# ZMIANA: jeśli plik nie istnieje, utwórz go z właściwą zawartością (zamiast 'touch')
+- name: Utwórz ~/.config/kanshi/config z domyślną zawartością (jeśli brak)
+  ansible.builtin.copy:
+    dest: "{{ real_home }}/.config/kanshi/config"
+    force: false
     owner: "{{ real_user }}"
     group: "{{ real_user }}"
     mode: "0644"
+    content: |
+      profile {
+          output DPI-1 enable mode 480x640@60.000 position 0,0 transform 90
+      }
 
 # Wymuś "transform 90" w każdej linii 'output ... transform <0|90|180|270>'
 - name: Ustaw transform 90 w kanshi config
@@ -94,7 +99,7 @@
     content: |
       <?xml version="1.0"?>
       <openbox_config xmlns="http://openbox.org/3.4/rc">
-        <touch deviceName="11-005d Goodix Capacitive TouchScreen" mapToOutput="DPI-1" mouseEmulation="no"/>
+          <touch deviceName="11-005d Goodix Capacitive TouchScreen" mapToOutput="DPI-1" mouseEmulation="no"/>
       </openbox_config>
 
 - name: Change mouse mode to multitouch
