@@ -1,0 +1,55 @@
+---
+- name: Ustal realnego użytkownika (ten spod sudo)
+  ansible.builtin.set_fact:
+    real_user: >-
+      {{
+        (ansible_env.SUDO_USER | default(omit))
+        | default(ansible_env.LOGNAME, true)
+        | default(ansible_env.USER, true)
+        | default(ansible_user_id)
+      }}
+
+- name: Pobierz wpis passwd realnego użytkownika (dla katalogu domowego)
+  ansible.builtin.getent:
+    database: passwd
+    key: "{{ real_user }}"
+
+# /etc/passwd: [name, passwd, uid, gid, gecos, dir, shell]
+- name: Ustal katalog domowy realnego użytkownika
+  ansible.builtin.set_fact:
+    real_home: "{{ getent_passwd[real_user][5] | default((real_user == 'root') | ternary('/root', '/home/' ~ real_user)) }}"
+
+- name: Upewnij się, że katalog ~/.config/kanshi istnieje
+  ansible.builtin.file:
+    path: "{{ real_home }}/.config/kanshi"
+    state: directory
+    owner: "{{ real_user }}"
+    group: "{{ real_user }}"
+    mode: "0755"
+
+- name: Upewnij się, że plik config istnieje
+  ansible.builtin.file:
+    path: "{{ real_home }}/.config/kanshi/config"
+    state: touch
+    owner: "{{ real_user }}"
+    group: "{{ real_user }}"
+    mode: "0644"
+
+# Wymuś "transform 90" w każdej linii 'output ... transform <0|90|180|270>'
+- name: Ustaw transform 90 w kanshi config
+  ansible.builtin.replace:
+    path: "{{ real_home }}/.config/kanshi/config"
+    regexp: '(^\s*output\b[^\n]*?\btransform\s+)(?:0|90|180|270)\b'
+    replace: '\g<1>90'
+    backup: true
+
+# (Opcjonalnie) Jeżeli chcesz dodatkowo zapewnić, że w sekcji profile istnieje linia z transform,
+# nawet gdy jej wcześniej nie było — możesz dołożyć blockinfile lub lineinfile odpowiednio do Twojej struktury.
+# Poniższe jest przykładem "best-effort" dodania transform przy braku linii:
+- name: Dodaj transform 90 jeśli brak linii transform w liniach output (opcjonalne)
+  ansible.builtin.lineinfile:
+    path: "{{ real_home }}/.config/kanshi/config"
+    regexp: '^\s*output\b(?!.*\btransform\b).*'
+    line: '\g<0> transform 90'
+    backrefs: true
+  when: false  # ustaw na true jeśli chcesz wymuszać dodanie przy braku
