@@ -73,12 +73,73 @@
 #   changed_when: true
 #   when: false
 
+# --- LABWC: przygotowanie rc.xml ---
+
+- name: Upewnij się, że katalog ~/.config/labwc istnieje
+  ansible.builtin.file:
+    path: "{{ real_home }}/.config/labwc"
+    state: directory
+    owner: "{{ real_user }}"
+    group: "{{ real_user }}"
+    mode: "0755"
+
+# Utwórz plik z domyślną zawartością tylko jeśli nie istnieje
+- name: Utwórz ~/.config/labwc/rc.xml z domyślną zawartością (jeśli brak)
+  ansible.builtin.copy:
+    dest: "{{ real_home }}/.config/labwc/rc.xml"
+    force: false
+    owner: "{{ real_user }}"
+    group: "{{ real_user }}"
+    mode: "0644"
+    content: |
+      <?xml version="1.0"?>
+      <openbox_config xmlns="http://openbox.org/3.4/rc">
+        <touch deviceName="11-005d Goodix Capacitive TouchScreen" mapToOutput="DPI-1" mouseEmulation="no"/>
+      </openbox_config>
+
 - name: Change mouse mode to multitouch
   ansible.builtin.replace:
     path: "{{ real_home }}/.config/labwc/rc.xml"
     regexp: '(\bmouseEmulation=")(?:yes|no)"'
     replace: '\1no"'
     backup: true
+
+- name: Ustaw właściciela pliku rc.xml na real_user
+  ansible.builtin.file:
+    path: "{{ real_home }}/.config/labwc/rc.xml"
     owner: "{{ real_user }}"
     group: "{{ real_user }}"
     mode: "0644"
+
+# --- GREETER: /etc/xdg/labwc-greeter ---
+
+- name: Upewnij się, że katalog /etc/xdg/labwc-greeter istnieje
+  become: true
+  ansible.builtin.file:
+    path: /etc/xdg/labwc-greeter
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Skopiuj rc.xml do /etc/xdg/labwc-greeter/rc.xml
+  become: true
+  ansible.builtin.copy:
+    src: "{{ real_home }}/.config/labwc/rc.xml"
+    dest: /etc/xdg/labwc-greeter/rc.xml
+    remote_src: true
+    owner: root
+    group: root
+    mode: "0644"
+    backup: true
+
+- name: Skopiuj kanshi config do /etc/xdg/labwc-greeter/config.kanshi
+  become: true
+  ansible.builtin.copy:
+    src: "{{ real_home }}/.config/kanshi/config"
+    dest: /etc/xdg/labwc-greeter/config.kanshi
+    remote_src: true
+    owner: root
+    group: root
+    mode: "0644"
+    backup: true
