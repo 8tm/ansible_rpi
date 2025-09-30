@@ -22,3 +22,11 @@
   loop: "{{ (dtbo_files.files | default([])) }}"
   loop_control:
     label: "{{ item.path | basename }}"
+
+- name: Rotate screen
+  ansible.builtin.replace:
+    path: "{{ ansible_env.HOME }}/.config/kanshi/config"
+    # Searches for: line starting with "output", anywhere after "transform <0|90|180|270>"
+    regexp: '(^\s*output\b[^\n]*?\btransform\s+)(?:0|90|180|270)\b'
+    replace: '\g<1>90'
+    backup: true
