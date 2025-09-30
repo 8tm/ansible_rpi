@@ -46,7 +46,7 @@
 - name: Utwórz ~/.config/kanshi/config z domyślną zawartością (jeśli brak)
   ansible.builtin.copy:
     dest: "{{ real_home }}/.config/kanshi/config"
-    force: false
+    force: true
     owner: "{{ real_user }}"
     group: "{{ real_user }}"
     mode: "0644"
@@ -63,14 +63,25 @@
     replace: '\g<1>90'
     backup: true
 
-# (Opcjonalnie) Dodaj transform 90, jeśli linia output nie ma transform
-- name: Dodaj transform 90 jeśli brak linii transform w liniach output (opcjonalne)
-  ansible.builtin.lineinfile:
-    path: "{{ real_home }}/.config/kanshi/config"
-    regexp: '^\s*output\b(?!.*\btransform\b).*'
-    line: '\g<0> transform 90'
-    backrefs: true
-  when: false  # ustaw na true, jeśli chcesz wymuszać dodanie przy braku
+## (Opcjonalnie) Dodaj transform 90, jeśli linia output nie ma transform
+#- name: Dodaj transform 90 jeśli brak linii transform w liniach output (opcjonalne)
+#  ansible.builtin.lineinfile:
+#    path: "{{ real_home }}/.config/kanshi/config"
+#    regexp: '^\s*output\b(?!.*\btransform\b).*'
+#    line: '\g<0> transform 90'
+#    backrefs: true
+#  when: false  # ustaw na true, jeśli chcesz wymuszać dodanie przy braku
+
+- name: Skopiuj kanshi config do /etc/xdg/labwc-greeter/config.kanshi
+  become: true
+  ansible.builtin.copy:
+    src: "{{ real_home }}/.config/kanshi/config"
+    dest: /etc/xdg/labwc-greeter/config.kanshi
+    remote_src: true
+    owner: root
+    group: root
+    mode: "0644"
+    backup: true
 
 # (Opcjonalnie) Restart/usypianie kanshi po zmianie – zależnie od sposobu uruchamiania
 # - name: Restart kanshi (systemd --user)
@@ -92,7 +103,7 @@
 - name: Utwórz ~/.config/labwc/rc.xml z domyślną zawartością (jeśli brak)
   ansible.builtin.copy:
     dest: "{{ real_home }}/.config/labwc/rc.xml"
-    force: false
+    force: true
     owner: "{{ real_user }}"
     group: "{{ real_user }}"
     mode: "0644"
@@ -132,17 +143,6 @@
   ansible.builtin.copy:
     src: "{{ real_home }}/.config/labwc/rc.xml"
     dest: /etc/xdg/labwc-greeter/rc.xml
-    remote_src: true
-    owner: root
-    group: root
-    mode: "0644"
-    backup: true
-
-- name: Skopiuj kanshi config do /etc/xdg/labwc-greeter/config.kanshi
-  become: true
-  ansible.builtin.copy:
-    src: "{{ real_home }}/.config/kanshi/config"
-    dest: /etc/xdg/labwc-greeter/config.kanshi
     remote_src: true
     owner: root
     group: root
